@@ -13,6 +13,7 @@ from sklearn.neighbors import KNeighborsClassifier
 import random
 
 
+
 def ScotterPlotOfTrasiningSamples(X_train,y_train):
     y_train = y_train.reshape(60000, 1)
     input_data = X_train / 255
