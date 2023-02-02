@@ -9,7 +9,7 @@ from sklearn.manifold import TSNE
 from sklearn.utils import shuffle
 from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
-
+from sklearn.neural_network import MLPClassifier
 import random
 
 
@@ -119,22 +119,67 @@ def KNNThreeEuclidean(x_Val,y_Val,x_test,y_test):
     pred = knn.score(x_test, y_test)
     print("KNN with k = 3 using Euclidean Distance: " + str(pred))
 
+def KNN_BaselineModel(x_training,y_training,x_test,y_test):
+    # Create KNN Classifier
+    knn = KNeighborsClassifier(n_neighbors=3, metric='manhattan')
+    # Train the model using the training sets
+    knn.fit(x_training, y_training)
+    pred = knn.score(x_test, y_test)
+    print("Accuracy of the Baseline Model (KNN with k = 3 using manhattan Distance): " + str(pred))
+
+def model1_NeuralNetwork(x_Val,y_Val,x_test,y_test):
+    Model1 = MLPClassifier(solver='lbfgs', alpha=1e-5,hidden_layer_sizes = (10,), random_state = 1)
+    Model1.fit(x_Val, y_Val)
+    pred = Model1.score(x_test, y_test)
+    print("Accuracy of the Neural Network (MLP) with hidden layers 10: " + str(pred))
+
+    Model2 = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(20,), random_state=1)
+    Model2.fit(x_Val, y_Val)
+    pred = Model2.score(x_test, y_test)
+    print("Accuracy of the Neural Network (MLP) with hidden layers 20: " + str(pred))
+
+    Model3 = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(30,), random_state=1)
+    Model3.fit(x_Val, y_Val)
+    pred = Model3.score(x_test, y_test)
+    print("Accuracy of the Neural Network (MLP) with hidden layers 30: " + str(pred))
+
 def start():
     X_train, y_train = mnist_reader.load_mnist('', kind='train')
     X_test, y_test = mnist_reader.load_mnist('', kind='t10k')
     class_names = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat',
                    'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle boot']
     # X_train, y_train = shuffle(X_train, y_train, random_state=0)
+    X_train = X_train/256
+    X_test = X_test/256
     X_train, X_validation,y_train, y_validation = train_test_split(X_train, y_train,random_state=104,test_size=1/3,shuffle=True)
+
+    # This part for finding the best baseline model between knn = 1 and 3, and with two different distances
+    # st = time.time()
+    # KNNOneManhattan(X_validation,y_validation,X_test,y_test)
+    # KNNThreeManhattan(X_validation,y_validation,X_test,y_test)
+    # KNNOneEuclidean(X_validation,y_validation,X_test,y_test)
+    # KNNThreeEuclidean(X_validation,y_validation,X_test,y_test)
+    # et = time.time()
+    # # get the execution time
+    # elapsed_time = et - st
+    # print('Execution time:', elapsed_time, 'seconds')
+
+    # this part is to train the best baseline model chosen from the previous part which is knn with k=3
+    # and using Manhattan distance
+    # st = time.time()
+    # KNN_BaselineModel(X_train,y_train,X_test,y_test)
+    # et = time.time()
+    # # get the execution time
+    # elapsed_time = et - st
+    # print('Execution time:', elapsed_time, 'seconds')
+
     st = time.time()
-    KNNOneManhattan(X_validation,y_validation,X_test,y_test)
+    model1_NeuralNetwork(X_validation,y_validation,X_test,y_test)
     et = time.time()
-    # get the execution time
     elapsed_time = et - st
     print('Execution time:', elapsed_time, 'seconds')
-    #KNNThreeManhattan(X_validation,y_validation,X_test,y_test)
-    #KNNOneEuclidean(X_validation,y_validation,X_test,y_test)
-    #KNNThreeEuclidean(X_validation,y_validation,X_test,y_test)
+
+
 
     # X_train= X_train.reshape(40000,28,28)
     # plt.figure()
