@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 import time
+from sklearnex import patch_sklearn
+patch_sklearn()
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 from sklearn.utils import shuffle
@@ -11,8 +13,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neural_network import MLPClassifier
 import random
-
-
 
 def ScotterPlotOfTrasiningSamples(X_train,y_train):
     y_train = y_train.reshape(60000, 1)
@@ -87,36 +87,36 @@ def ScotterPlotOfTrasiningSamples(X_train,y_train):
     plt.title("Scatter Plot of 10000 samples (Aseel Sabri and Kareem Afaneh)")
     plt.show()
 
-def KNNOneManhattan(x_Val,y_Val,x_test,y_test):
+def KNNOneManhattan(x_training,y_training,x_Val,y_Val):
     # Create KNN Classifier
     knn = KNeighborsClassifier(n_neighbors=1, metric='manhattan')
     # Train the model using the training sets
-    knn.fit(x_Val, y_Val)
-    pred = knn.score(x_test,y_test)
+    knn.fit(x_training, y_training)
+    pred = knn.score(x_Val,y_Val)
     print("KNN with k = 1 using Manhattan Distance: " + str(pred))
 
-def KNNThreeManhattan(x_Val,y_Val,x_test,y_test):
+def KNNThreeManhattan(x_training,y_training,x_Val,y_Val):
     # Create KNN Classifier
     knn = KNeighborsClassifier(n_neighbors=3, metric='manhattan')
     # Train the model using the training sets
-    knn.fit(x_Val, y_Val)
-    pred = knn.score(x_test, y_test)
+    knn.fit(x_training, y_training)
+    pred = knn.score(x_Val, y_Val)
     print("KNN with k = 3 using Manhattan Distance: " + str(pred))
 
-def KNNOneEuclidean(x_Val,y_Val,x_test,y_test):
+def KNNOneEuclidean(x_training,y_training,x_Val,y_Val):
     # Create KNN Classifier
     knn = KNeighborsClassifier(n_neighbors=1, metric='euclidean')
     # Train the model using the training sets
-    knn.fit(x_Val, y_Val)
-    pred = knn.score(x_test, y_test)
+    knn.fit(x_training, y_training)
+    pred = knn.score(x_Val, y_Val)
     print("KNN with k = 1 using Euclidean Distance: " + str(pred))
 
-def KNNThreeEuclidean(x_Val,y_Val,x_test,y_test):
+def KNNThreeEuclidean(x_training,y_training,x_Val,y_Val):
     # Create KNN Classifier
     knn = KNeighborsClassifier(n_neighbors=3, metric='euclidean')
     # Train the model using the training sets
-    knn.fit(x_Val, y_Val)
-    pred = knn.score(x_test, y_test)
+    knn.fit(x_training, y_training)
+    pred = knn.score(x_Val, y_Val)
     print("KNN with k = 3 using Euclidean Distance: " + str(pred))
 
 def KNN_BaselineModel(x_training,y_training,x_test,y_test):
@@ -127,20 +127,23 @@ def KNN_BaselineModel(x_training,y_training,x_test,y_test):
     pred = knn.score(x_test, y_test)
     print("Accuracy of the Baseline Model (KNN with k = 3 using manhattan Distance): " + str(pred))
 
-def model1_NeuralNetwork(x_Val,y_Val,x_test,y_test):
-    Model1 = MLPClassifier(solver='lbfgs', alpha=1e-5,hidden_layer_sizes = (10,), random_state = 1)
-    Model1.fit(x_Val, y_Val)
-    pred = Model1.score(x_test, y_test)
+def model1_NeuralNetwork(x_training,y_training,x_Val,y_Val):
+    Model1 = MLPClassifier(solver='adam',max_iter=500, alpha=1e-5,hidden_layer_sizes = (10,),
+                           random_state = 1,tol=1e-3, n_iter_no_change = 5)
+    Model1.fit(x_training, y_training)
+    pred = Model1.score(x_Val, y_Val)
     print("Accuracy of the Neural Network (MLP) with hidden layers 10: " + str(pred))
 
-    Model2 = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(20,), random_state=1)
-    Model2.fit(x_Val, y_Val)
-    pred = Model2.score(x_test, y_test)
+    Model2 = MLPClassifier(solver='adam',max_iter=500, alpha=1e-5, hidden_layer_sizes=(20,),
+                           random_state=1,tol=1e-3, n_iter_no_change = 5)
+    Model2.fit(x_training, y_training)
+    pred = Model2.score(x_Val, y_Val)
     print("Accuracy of the Neural Network (MLP) with hidden layers 20: " + str(pred))
 
-    Model3 = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(30,), random_state=1)
-    Model3.fit(x_Val, y_Val)
-    pred = Model3.score(x_test, y_test)
+    Model3 = MLPClassifier(solver='adam',max_iter=500, alpha=1e-5, hidden_layer_sizes=(30,),
+                           random_state=1,tol=1e-3, n_iter_no_change = 5)
+    Model3.fit(x_training, y_training)
+    pred = Model3.score(x_Val, y_Val)
     print("Accuracy of the Neural Network (MLP) with hidden layers 30: " + str(pred))
 
 def start():
@@ -151,14 +154,16 @@ def start():
     # X_train, y_train = shuffle(X_train, y_train, random_state=0)
     X_train = X_train/256
     X_test = X_test/256
+    beforeSplitX_train = X_train
+    beforeSplitY_train = y_train
     X_train, X_validation,y_train, y_validation = train_test_split(X_train, y_train,random_state=104,test_size=1/3,shuffle=True)
 
     # This part for finding the best baseline model between knn = 1 and 3, and with two different distances
     # st = time.time()
-    # KNNOneManhattan(X_validation,y_validation,X_test,y_test)
-    # KNNThreeManhattan(X_validation,y_validation,X_test,y_test)
-    # KNNOneEuclidean(X_validation,y_validation,X_test,y_test)
-    # KNNThreeEuclidean(X_validation,y_validation,X_test,y_test)
+    # KNNOneManhattan(X_train,y_train,X_validation,y_validation)
+    # KNNThreeManhattan(X_train,y_train,X_validation,y_validation)
+    # KNNOneEuclidean(X_train,y_train,X_validation,y_validation)
+    # KNNThreeEuclidean(X_train,y_train,X_validation,y_validation)
     # et = time.time()
     # # get the execution time
     # elapsed_time = et - st
@@ -166,18 +171,19 @@ def start():
 
     # this part is to train the best baseline model chosen from the previous part which is knn with k=3
     # and using Manhattan distance
-    # st = time.time()
-    # KNN_BaselineModel(X_train,y_train,X_test,y_test)
-    # et = time.time()
-    # # get the execution time
-    # elapsed_time = et - st
-    # print('Execution time:', elapsed_time, 'seconds')
-
     st = time.time()
-    model1_NeuralNetwork(X_validation,y_validation,X_test,y_test)
+    KNN_BaselineModel(beforeSplitX_train,beforeSplitY_train,X_test,y_test)
     et = time.time()
+    # get the execution time
     elapsed_time = et - st
     print('Execution time:', elapsed_time, 'seconds')
+
+    # This part discuss the Neural Network
+    # st = time.time()
+    # model1_NeuralNetwork(X_train,y_train,X_validation,y_validation)
+    # et = time.time()
+    # elapsed_time = et - st
+    # print('Execution time:', elapsed_time, 'seconds')
 
 
 
