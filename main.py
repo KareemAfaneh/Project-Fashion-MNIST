@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
+import os.path
 import time
 from sklearnex import patch_sklearn
 patch_sklearn()
@@ -12,7 +13,24 @@ from sklearn.utils import shuffle
 from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neural_network import MLPClassifier
+from sklearn.ensemble import RandomForestClassifier
 import random
+directory = './outputFiles/'
+
+def readData():
+    X_train, y_train = mnist_reader.load_mnist('', kind='train')
+    X_test, y_test = mnist_reader.load_mnist('', kind='t10k')
+    class_names = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat',
+                   'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle boot']
+    return X_train,y_train,X_test,y_test,class_names
+
+def write_On_file(fileName,data):
+    file_path = os.path.join(directory, fileName+".txt")
+    if not os.path.isdir(directory):
+        os.mkdir(directory)
+    file = open(file_path, "a+")
+    file.write(data)
+    file.close()
 
 def ScotterPlotOfTrasiningSamples(X_train,y_train):
     y_train = y_train.reshape(60000, 1)
@@ -94,6 +112,7 @@ def KNNOneManhattan(x_training,y_training,x_Val,y_Val):
     knn.fit(x_training, y_training)
     pred = knn.score(x_Val,y_Val)
     print("KNN with k = 1 using Manhattan Distance: " + str(pred))
+    write_On_file("KNN","KNN with k = 1 using Manhattan Distance: " + str(pred)+"\n")
 
 def KNNThreeManhattan(x_training,y_training,x_Val,y_Val):
     # Create KNN Classifier
@@ -102,6 +121,7 @@ def KNNThreeManhattan(x_training,y_training,x_Val,y_Val):
     knn.fit(x_training, y_training)
     pred = knn.score(x_Val, y_Val)
     print("KNN with k = 3 using Manhattan Distance: " + str(pred))
+    write_On_file("KNN", "KNN with k = 3 using Manhattan Distance: " + str(pred)+"\n")
 
 def KNNOneEuclidean(x_training,y_training,x_Val,y_Val):
     # Create KNN Classifier
@@ -110,6 +130,7 @@ def KNNOneEuclidean(x_training,y_training,x_Val,y_Val):
     knn.fit(x_training, y_training)
     pred = knn.score(x_Val, y_Val)
     print("KNN with k = 1 using Euclidean Distance: " + str(pred))
+    write_On_file("KNN", "KNN with k = 1 using Euclidean Distance: " + str(pred)+"\n")
 
 def KNNThreeEuclidean(x_training,y_training,x_Val,y_Val):
     # Create KNN Classifier
@@ -118,6 +139,7 @@ def KNNThreeEuclidean(x_training,y_training,x_Val,y_Val):
     knn.fit(x_training, y_training)
     pred = knn.score(x_Val, y_Val)
     print("KNN with k = 3 using Euclidean Distance: " + str(pred))
+    write_On_file("KNN", "KNN with k = 3 using Euclidean Distance: " + str(pred)+"\n")
 
 def KNN_BaselineModel(x_training,y_training,x_test,y_test):
     # Create KNN Classifier
@@ -126,6 +148,7 @@ def KNN_BaselineModel(x_training,y_training,x_test,y_test):
     knn.fit(x_training, y_training)
     pred = knn.score(x_test, y_test)
     print("Accuracy of the Baseline Model (KNN with k = 3 using manhattan Distance): " + str(pred))
+    write_On_file("KNN", "\n\nAccuracy of the Baseline Model (KNN with k = 3 using manhattan Distance): " + str(pred)+"\n")
 
 def model1_NeuralNetwork(x_training,y_training,x_Val,y_Val):
     Model1 = MLPClassifier(solver='adam',max_iter=500, alpha=1e-5,hidden_layer_sizes = (10,),
@@ -146,11 +169,28 @@ def model1_NeuralNetwork(x_training,y_training,x_Val,y_Val):
     pred = Model3.score(x_Val, y_Val)
     print("Accuracy of the Neural Network (MLP) with hidden layers 30: " + str(pred))
 
+def model2_RandomForest(x_training,y_training,x_Val,y_Val):
+    # training random Forest
+    randomF = RandomForestClassifier(n_estimators=100)
+    randomF.fit(x_training, y_training)
+    pred = randomF.score(x_Val, y_Val)
+    print("Random Forest Classifier with 100 estimators: " + str(pred))
+    write_On_file("Random_Forest", "Random Forest Classifier with 100 estimators: " + str(pred))
+
+    randomF = RandomForestClassifier(n_estimators=150)
+    randomF.fit(x_training, y_training)
+    pred = randomF.score(x_Val, y_Val)
+    print("Random Forest Classifier with 150 estimators: " + str(pred))
+    write_On_file("Random_Forest", "Random Forest Classifier with 150 estimators: " + str(pred))
+
+    randomF = RandomForestClassifier(n_estimators=200)
+    randomF.fit(x_training, y_training)
+    pred = randomF.score(x_Val, y_Val)
+    print("Random Forest Classifier with 200 estimators: " + str(pred))
+    write_On_file("Random_Forest", "Random Forest Classifier with 200 estimators: " + str(pred)+"\n")
+
 def start():
-    X_train, y_train = mnist_reader.load_mnist('', kind='train')
-    X_test, y_test = mnist_reader.load_mnist('', kind='t10k')
-    class_names = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat',
-                   'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle boot']
+    X_train, y_train, X_test, y_test, class_names = readData()
     # X_train, y_train = shuffle(X_train, y_train, random_state=0)
     X_train = X_train/256
     X_test = X_test/256
@@ -164,28 +204,22 @@ def start():
     # KNNThreeManhattan(X_train,y_train,X_validation,y_validation)
     # KNNOneEuclidean(X_train,y_train,X_validation,y_validation)
     # KNNThreeEuclidean(X_train,y_train,X_validation,y_validation)
-    # et = time.time()
-    # # get the execution time
-    # elapsed_time = et - st
-    # print('Execution time:', elapsed_time, 'seconds')
+    # print('Execution time:', time.time() - st, 'seconds')
 
     # this part is to train the best baseline model chosen from the previous part which is knn with k=3
     # and using Manhattan distance
-    st = time.time()
-    KNN_BaselineModel(beforeSplitX_train,beforeSplitY_train,X_test,y_test)
-    et = time.time()
-    # get the execution time
-    elapsed_time = et - st
-    print('Execution time:', elapsed_time, 'seconds')
+    # st = time.time()
+    # KNN_BaselineModel(beforeSplitX_train,beforeSplitY_train,X_test,y_test)
+    # print('Execution time:', time.time() - st, 'seconds')
 
     # This part discuss the Neural Network
     # st = time.time()
     # model1_NeuralNetwork(X_train,y_train,X_validation,y_validation)
-    # et = time.time()
-    # elapsed_time = et - st
-    # print('Execution time:', elapsed_time, 'seconds')
+    # print('Execution time:', time.time() - st, 'seconds')
 
-
+    # st = time.time()
+    # model2_RandomForest(X_train,y_train,X_validation,y_validation)
+    # print('Execution time:', time.time() - st, 'seconds')
 
     # X_train= X_train.reshape(40000,28,28)
     # plt.figure()
@@ -197,9 +231,5 @@ def start():
 
     # ScotterPlotOfTrasiningSamples(X_train,y_train)
 
-
 if __name__ == '__main__':
     start()
-
-
-

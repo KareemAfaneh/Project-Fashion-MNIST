@@ -5,10 +5,10 @@ def load_mnist(path, kind='train'):
 
     """Load MNIST data from `path`"""
     labels_path = os.path.join(path,
-                               '%s-labels-idx1-ubyte.gz'
+                               'OtherFiles/%s-labels-idx1-ubyte.gz'
                                % kind)
     images_path = os.path.join(path,
-                               '%s-images-idx3-ubyte.gz'
+                               'OtherFiles/%s-images-idx3-ubyte.gz'
                                % kind)
 
     with gzip.open(labels_path, 'rb') as lbpath:
