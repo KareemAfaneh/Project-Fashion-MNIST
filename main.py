@@ -15,6 +15,8 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.ensemble import RandomForestClassifier
 import random
+import tensorflow as tf
+from tensorflow.keras import datasets, layers, models
 directory = './outputFiles/'
 
 def readData():
@@ -189,6 +191,25 @@ def model2_RandomForest(x_training,y_training,x_Val,y_Val):
     print("Random Forest Classifier with 200 estimators: " + str(pred))
     write_On_file("Random_Forest", "Random Forest Classifier with 200 estimators: " + str(pred)+"\n")
 
+def model3_CNN(x_training,y_training,x_Val,y_Val,batchSize,epochs,num_classes):
+    model = models.Sequential()
+    model.add(layers.Conv2D(batchSize/4, (3, 3), activation='relu', input_shape=(28, 28, 1)))
+    model.add(layers.MaxPooling2D((2, 2)))
+    model.add(layers.Conv2D(batchSize/2, (3, 3), activation='relu'))
+    model.add(layers.MaxPooling2D((2, 2)))
+    model.add(layers.Conv2D(batchSize, (3, 3), activation='relu'))
+    model.add(layers.Flatten())
+    model.add(layers.Dense(batchSize, activation='relu'))
+    model.add(layers.Dense(num_classes))
+    model.compile(optimizer='adam',
+                  loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+                  metrics=['accuracy'])
+
+    history = model.fit(x_training, y_training,batch_size=batchSize,epochs=epochs,verbose=1,validation_data=(x_Val, y_Val))
+    test_loss, test_acc = model.evaluate(x_Val, y_Val)
+    print("Accuracy of the Convolutional Neural Network (CNN) with batchSize "+str(batchSize)+" : " + str(test_acc))
+    write_On_file("CNN", "Accuracy of the Convolutional Neural Network (CNN) with batchSize "+str(batchSize)+" : " + str(test_acc)+"\n")
+
 def start():
     X_train, y_train, X_test, y_test, class_names = readData()
     # X_train, y_train = shuffle(X_train, y_train, random_state=0)
@@ -220,6 +241,14 @@ def start():
     # st = time.time()
     # model2_RandomForest(X_train,y_train,X_validation,y_validation)
     # print('Execution time:', time.time() - st, 'seconds')
+
+    X_trainShaped = X_train.reshape(-1,28,28,1)
+    X_validationShaped = X_validation.reshape(-1,28,28,1)
+    st = time.time()
+    model3_CNN(X_trainShaped, y_train, X_validationShaped, y_validation, 32, 20, 10)
+    model3_CNN(X_trainShaped, y_train, X_validationShaped, y_validation, 64, 20, 10)
+    model3_CNN(X_trainShaped, y_train, X_validationShaped, y_validation, 128, 20, 10)
+    print('Execution time:', time.time() - st, 'seconds')
 
     # X_train= X_train.reshape(40000,28,28)
     # plt.figure()
