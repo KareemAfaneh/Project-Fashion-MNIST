@@ -5,6 +5,7 @@ import seaborn as sns
 import pandas as pd
 import os.path
 import time
+import pickle
 from sklearnex import patch_sklearn
 
 patch_sklearn()
@@ -14,21 +15,22 @@ from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import f1_score
+import random
 import tensorflow as tf
 from tensorflow.keras import datasets, layers, models
 
-directory = './outputFiles/'
 
-
-def readData():
-    X_train, y_train = mnist_reader.load_mnist('', kind='train')
-    X_test, y_test = mnist_reader.load_mnist('', kind='t10k')
+def read_data():
+    x_train, y_train = mnist_reader.load_mnist('', kind='train')
+    x_test, y_test = mnist_reader.load_mnist('', kind='t10k')
     class_names = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat',
                    'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle boot']
-    return X_train, y_train, X_test, y_test, class_names
+    return x_train, y_train, x_test, y_test, class_names
 
 
 def write_On_file(file_name, data):
+    directory = './outputFiles/'
     file_path = os.path.join(directory, file_name + ".txt")
     if not os.path.isdir(directory):
         os.mkdir(directory)
@@ -37,7 +39,20 @@ def write_On_file(file_name, data):
     file.close()
 
 
-def scatterPlotOfTrainingSamples(x_train, y_train):
+def store_models(fileName, model):
+    directory = './Models/'
+    file_path = os.path.join(directory, fileName)
+    pickle.dump(model, open(file_path, 'wb'))
+
+
+def restore_models(fileName):
+    directory = './Models/'
+    file_path = os.path.join(directory, fileName)
+    pickled_model = pickle.load(open(file_path, 'rb'))
+    return pickled_model
+
+
+def scatter_plot_of_training_samples(x_train, y_train):
     y_train = y_train.reshape(60000, 1)
     input_data = x_train / 255
     target = y_train
@@ -119,6 +134,7 @@ def KNNOneManhattan(x_train, y_train, x_val, y_val):
     pred = knn.score(x_val, y_val)
     print("KNN with k = 1 using Manhattan Distance: " + str(pred))
     write_On_file("KNN", "KNN with k = 1 using Manhattan Distance: " + str(pred) + "\n")
+    store_models("KNNOneManhattan.pkl", knn)
 
 
 def KNNThreeManhattan(x_train, y_train, x_val, y_val):
@@ -129,6 +145,7 @@ def KNNThreeManhattan(x_train, y_train, x_val, y_val):
     pred = knn.score(x_val, y_val)
     print("KNN with k = 3 using Manhattan Distance: " + str(pred))
     write_On_file("KNN", "KNN with k = 3 using Manhattan Distance: " + str(pred) + "\n")
+    store_models("KNNThreeManhattan.pkl", knn)
 
 
 def KNNOneEuclidean(x_train, y_train, x_val, y_val):
@@ -139,6 +156,7 @@ def KNNOneEuclidean(x_train, y_train, x_val, y_val):
     pred = knn.score(x_val, y_val)
     print("KNN with k = 1 using Euclidean Distance: " + str(pred))
     write_On_file("KNN", "KNN with k = 1 using Euclidean Distance: " + str(pred) + "\n")
+    store_models("KNNOneEuclidean.pkl", knn)
 
 
 def KNNThreeEuclidean(x_train, y_train, x_val, y_val):
@@ -149,6 +167,7 @@ def KNNThreeEuclidean(x_train, y_train, x_val, y_val):
     pred = knn.score(x_val, y_val)
     print("KNN with k = 3 using Euclidean Distance: " + str(pred))
     write_On_file("KNN", "KNN with k = 3 using Euclidean Distance: " + str(pred) + "\n")
+    store_models("KNNThreeEuclidean.pkl", knn)
 
 
 def KNN_BaselineModel(x_train, y_train, x_test, y_test):
@@ -160,26 +179,30 @@ def KNN_BaselineModel(x_train, y_train, x_test, y_test):
     print("Accuracy of the Baseline Model (KNN with k = 3 using manhattan Distance): " + str(pred))
     write_On_file("KNN",
                   "\n\nAccuracy of the Baseline Model (KNN with k = 3 using manhattan Distance): " + str(pred) + "\n")
+    store_models("KNN_BaselineModel.pkl", knn)
 
 
 def model1_NeuralNetwork(x_train, y_train, x_val, y_val):
-    Model1 = MLPClassifier(solver='adam', max_iter=500, alpha=1e-5, hidden_layer_sizes=(10,),
-                           random_state=1, tol=1e-3, n_iter_no_change=5)
-    Model1.fit(x_train, y_train)
-    pred = Model1.score(x_val, y_val)
+    NeuralNetwork1 = MLPClassifier(solver='adam', max_iter=500, alpha=1e-5, hidden_layer_sizes=(10,),
+                                   random_state=1, tol=1e-3, n_iter_no_change=5)
+    NeuralNetwork1.fit(x_train, y_train)
+    pred = NeuralNetwork1.score(x_val, y_val)
     print("Accuracy of the Neural Network (MLP) with hidden layers 10: " + str(pred))
+    store_models("NeuralNetwork1.pkl", NeuralNetwork1)
 
-    Model2 = MLPClassifier(solver='adam', max_iter=500, alpha=1e-5, hidden_layer_sizes=(20,),
-                           random_state=1, tol=1e-3, n_iter_no_change=5)
-    Model2.fit(x_train, y_train)
-    pred = Model2.score(x_val, y_val)
+    NeuralNetwork2 = MLPClassifier(solver='adam', max_iter=500, alpha=1e-5, hidden_layer_sizes=(20,),
+                                   random_state=1, tol=1e-3, n_iter_no_change=5)
+    NeuralNetwork2.fit(x_train, y_train)
+    pred = NeuralNetwork2.score(x_val, y_val)
     print("Accuracy of the Neural Network (MLP) with hidden layers 20: " + str(pred))
+    store_models("NeuralNetwork2.pkl", NeuralNetwork2)
 
-    Model3 = MLPClassifier(solver='adam', max_iter=500, alpha=1e-5, hidden_layer_sizes=(30,),
-                           random_state=1, tol=1e-3, n_iter_no_change=5)
-    Model3.fit(x_train, y_train)
-    pred = Model3.score(x_val, y_val)
+    NeuralNetwork3 = MLPClassifier(solver='adam', max_iter=500, alpha=1e-5, hidden_layer_sizes=(30,),
+                                   random_state=1, tol=1e-3, n_iter_no_change=5)
+    NeuralNetwork3.fit(x_train, y_train)
+    pred = NeuralNetwork3.score(x_val, y_val)
     print("Accuracy of the Neural Network (MLP) with hidden layers 30: " + str(pred))
+    store_models("NeuralNetwork2.pkl", NeuralNetwork3)
 
 
 def model2_RandomForest(x_train, y_train, x_val, y_val):
@@ -187,97 +210,100 @@ def model2_RandomForest(x_train, y_train, x_val, y_val):
     randomF = RandomForestClassifier(n_estimators=100, random_state=123)
     randomF.fit(x_train, y_train)
     pred = randomF.score(x_val, y_val)
-    print("Random Forest Classifier with 100 estimators: " + str(pred))
-    write_On_file("Random_Forest", "Random Forest Classifier (max_features=sqrt): " + str(pred) + "\n")
+    print("Random Forest Classifier  (max_features=sqrt): " + str(pred))
+    write_On_file("Random_Forest", "Random Forest Classifier (max_features=sqrt): " + str(pred))
+    store_models("randomForest.pkl", randomF)
 
     randomF = RandomForestClassifier(n_estimators=100, random_state=123, max_features='log2')
     randomF.fit(x_train, y_train)
     pred = randomF.score(x_val, y_val)
     print("Random Forest Classifier (max_features=log2): " + str(pred))
     write_On_file("Random_Forest", "Random Forest Classifier (max_features=log2): " + str(pred) + "\n")
+    store_models("randomForest.pkl", randomF)
 
     randomF = RandomForestClassifier(n_estimators=100, random_state=123, max_features=0.6)
     randomF.fit(x_train, y_train)
     pred = randomF.score(x_val, y_val)
     print("Random Forest Classifier (max_features=0.6): " + str(pred))
     write_On_file("Random_Forest", "Random Forest Classifier (max_features=0.6): " + str(pred) + "\n")
+    store_models("randomForest.pkl", randomF)
 
 
-def model3_CNN(x_train, y_train, x_val, y_val, batch_size, epochs=20, num_classes=10):
-    model = models.Sequential()
-    model.add(layers.Conv2D(batch_size / 4, (3, 3), activation='relu', input_shape=(28, 28, 1)))
-    model.add(layers.MaxPooling2D((2, 2)))
-    model.add(layers.Conv2D(batch_size / 2, (3, 3), activation='relu'))
-    model.add(layers.MaxPooling2D((2, 2)))
-    model.add(layers.Conv2D(batch_size, (3, 3), activation='relu'))
-    model.add(layers.Flatten())
-    model.add(layers.Dense(batch_size, activation='relu'))
-    model.add(layers.Dense(num_classes))
-    model.compile(optimizer='adam',
-                  loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-                  metrics=['accuracy'])
+def model3_CNN(id, x_train, y_train, x_val, y_val, batch_size, epochs=20, num_classes=10):
+    CNN = models.Sequential()
+    CNN.add(layers.Conv2D(batch_size / 4, (3, 3), activation='relu', input_shape=(28, 28, 1)))
+    CNN.add(layers.MaxPooling2D((2, 2)))
+    CNN.add(layers.Conv2D(batch_size / 2, (3, 3), activation='relu'))
+    CNN.add(layers.MaxPooling2D((2, 2)))
+    CNN.add(layers.Conv2D(batch_size, (3, 3), activation='relu'))
+    CNN.add(layers.Flatten())
+    CNN.add(layers.Dense(batch_size, activation='relu'))
+    CNN.add(layers.Dense(num_classes))
+    CNN.compile(optimizer='adam',
+                loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+                metrics=['accuracy'])
 
-    history = model.fit(x_train, y_train, batch_size=batch_size, epochs=epochs, verbose=1,
-                        validation_data=(x_val, y_val))
-    test_loss, test_acc = model.evaluate(x_val, y_val)
+    history = CNN.fit(x_train, y_train, batch_size=batch_size, epochs=epochs, verbose=1, validation_data=(x_val, y_val))
+    test_loss, test_acc = CNN.evaluate(x_val, y_val)
     print(
         "Accuracy of the Convolutional Neural Network (CNN) with batchSize " + str(batch_size) + " : " + str(test_acc))
     write_On_file("CNN",
                   "Accuracy of the Convolutional Neural Network (CNN) with batchSize " + str(batch_size) + " : " + str(
                       test_acc) + "\n")
+    store_models("CNN" + id + ".pkl", CNN)
 
 
 def start():
-    x_train, y_train, x_test, y_test, class_names = readData()
-
-    # normalizing data
+    x_train, y_train, x_test, y_test, class_names = read_data()
+    # x_train, y_train = shuffle(x_train, y_train, random_state=0)
     x_train = x_train / 255
     x_test = x_test / 255
+    x_train = x_train
+    y_train = y_train
+    x_train_splitted, X_validation, y_train, y_validation = train_test_split(x_train, y_train, random_state=104,
+                                                                             test_size=1 / 3, shuffle=True)
 
-    x_train_splitted, x_validation, y_train_splitted, y_validation = train_test_split(x_train, y_train,
-                                                                                      random_state=104, test_size=1 / 3,
-                                                                                      shuffle=True)
-
-    # # This part for finding the best baseline model between knn = 1 and 3, and with two different distances
+    # This part for finding the best baseline model between knn = 1 and 3, and with two different distances
     # st = time.time()
-    # KNNOneManhattan(x_train_splitted, y_train_splitted, x_validation, y_validation)
-    # KNNThreeManhattan(x_train_splitted, y_train_splitted, x_validation, y_validation)
-    # KNNOneEuclidean(x_train_splitted, y_train_splitted, x_validation, y_validation)
-    # KNNThreeEuclidean(x_train_splitted, y_train_splitted, x_validation, y_validation)
+    # KNNOneManhattan(x_train_splitted, y_train, X_validation, y_validation)
+    # KNNThreeManhattan(x_train_splitted, y_train, X_validation, y_validation)
+    # KNNOneEuclidean(x_train_splitted, y_train, X_validation, y_validation)
+    # KNNThreeEuclidean(x_train_splitted, y_train, X_validation, y_validation)
     # print('Execution time:', time.time() - st, 'seconds')
-    #
-    # # this part is to train the best baseline model chosen from the previous part which is knn with k=3
-    # # and using Manhattan distance
+
+    # this part is to train the best baseline model chosen from the previous part which is knn with k=3
+    # and using Manhattan distance
     # st = time.time()
     # KNN_BaselineModel(x_train, y_train, x_test, y_test)
     # print('Execution time:', time.time() - st, 'seconds')
-    #
-    # # This part discuss the Neural Network
+    # KNN_BaselineModel = restore_models("KNN_BaselineModel.pkl")
+    # f1 = f1_score(y_test, KNN_BaselineModel.predict(x_test), average=None)
+    # print(f1)
+
+    # This part discuss the Neural Network
     # st = time.time()
-    # model1_NeuralNetwork(x_train_splitted, y_train_splitted, x_validation, y_validation)
-    # print('Execution time:', time.time() - st, 'seconds')
-    #
-    # st = time.time()
-    # model2_RandomForest(x_train_splitted, y_train_splitted, x_validation, y_validation)
+    # model1_NeuralNetwork(x_train_splitted, y_train, X_validation, y_validation)
     # print('Execution time:', time.time() - st, 'seconds')
 
-    x_train_shaped = x_train_splitted.reshape(-1, 28, 28, 1)
-    x_validation_shaped = x_validation.reshape(-1, 28, 28, 1)
-    st = time.time()
-    model3_CNN(x_train_shaped, y_train_splitted, x_validation_shaped, y_validation, 32, 20, 10)
-    model3_CNN(x_train_shaped, y_train_splitted, x_validation_shaped, y_validation, 64, 20, 10)
-    model3_CNN(x_train_shaped, y_train_splitted, x_validation_shaped, y_validation, 128, 20, 10)
-    print('Execution time:', time.time() - st, 'seconds')
+    # st = time.time()
+    # model2_RandomForest(x_train_splitted, y_train, X_validation, y_validation)
+    # print('Execution time:', time.time() - st, 'seconds')
+
+    # x_train_shaped = x_train_splitted.reshape(-1, 28, 28, 1)
+    # x_validation_shaped = X_validation.reshape(-1, 28, 28, 1)
+    # st = time.time()
+    # model3_CNN(1, x_train_shaped, y_train, x_validation_shaped, y_validation, 32, 20, 10)
+    # model3_CNN(2, x_train_shaped, y_train, x_validation_shaped, y_validation, 64, 20, 10)
+    # model3_CNN(3, x_train_shaped, y_train, x_validation_shaped, y_validation, 128, 20, 10)
+    # print('Execution time:', time.time() - st, 'seconds')
 
     # x_train_splitted = x_train_splitted.reshape(40000, 28, 28)
     # plt.figure()
     # plt.imshow(x_train_splitted[6], cmap=plt.cm.binary)
-    # print(class_names[y_train_splitted[6]])
+    # print(class_names[y_train[6]])
     # plt.colorbar()
     # plt.grid(False)
     # plt.show()
-    #
-    # scatterPlotOfTrainingSamples(x_train_splitted, y_train_splitted)
 
 
 if __name__ == '__main__':
