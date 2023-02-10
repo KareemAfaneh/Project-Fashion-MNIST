@@ -24,7 +24,7 @@ from tensorflow.keras import datasets, layers, models
 def read_data():
     x_train, y_train = mnist_reader.load_mnist('', kind='train')
     x_test, y_test = mnist_reader.load_mnist('', kind='t10k')
-    class_names = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat',
+    class_names = ['T-shirt_top', 'Trouser', 'Pullover', 'Dress', 'Coat',
                    'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle boot']
     return x_train, y_train, x_test, y_test, class_names
 
@@ -258,17 +258,17 @@ def start():
     # x_train, y_train = shuffle(x_train, y_train, random_state=0)
     x_train = x_train / 255
     x_test = x_test / 255
-    x_train = x_train
-    y_train = y_train
-    x_train_splitted, X_validation, y_train, y_validation = train_test_split(x_train, y_train, random_state=104,
-                                                                             test_size=1 / 3, shuffle=True)
+
+    x_train_splitted, x_validation, y_train_splitted, y_validation = train_test_split(x_train, y_train,
+                                                                                      random_state=104,
+                                                                                      test_size=1 / 3, shuffle=True)
 
     # This part for finding the best baseline model between knn = 1 and 3, and with two different distances
     # st = time.time()
-    # KNNOneManhattan(x_train_splitted, y_train, X_validation, y_validation)
-    # KNNThreeManhattan(x_train_splitted, y_train, X_validation, y_validation)
-    # KNNOneEuclidean(x_train_splitted, y_train, X_validation, y_validation)
-    # KNNThreeEuclidean(x_train_splitted, y_train, X_validation, y_validation)
+    # KNNOneManhattan(x_train_splitted, y_train, x_validation, y_validation)
+    # KNNThreeManhattan(x_train_splitted, y_train, x_validation, y_validation)
+    # KNNOneEuclidean(x_train_splitted, y_train, x_validation, y_validation)
+    # KNNThreeEuclidean(x_train_splitted, y_train, x_validation, y_validation)
     # print('Execution time:', time.time() - st, 'seconds')
 
     # this part is to train the best baseline model chosen from the previous part which is knn with k=3
@@ -282,15 +282,15 @@ def start():
 
     # This part discuss the Neural Network
     # st = time.time()
-    # model1_NeuralNetwork(x_train_splitted, y_train, X_validation, y_validation)
+    # model1_NeuralNetwork(x_train_splitted, y_train, x_validation, y_validation)
     # print('Execution time:', time.time() - st, 'seconds')
 
     # st = time.time()
-    # model2_RandomForest(x_train_splitted, y_train, X_validation, y_validation)
+    # model2_RandomForest(x_train_splitted, y_train, x_validation, y_validation)
     # print('Execution time:', time.time() - st, 'seconds')
 
     # x_train_shaped = x_train_splitted.reshape(-1, 28, 28, 1)
-    # x_validation_shaped = X_validation.reshape(-1, 28, 28, 1)
+    # x_validation_shaped = x_validation.reshape(-1, 28, 28, 1)
     # st = time.time()
     # model3_CNN(1, x_train_shaped, y_train, x_validation_shaped, y_validation, 32, 20, 10)
     # model3_CNN(2, x_train_shaped, y_train, x_validation_shaped, y_validation, 64, 20, 10)
@@ -304,6 +304,38 @@ def start():
     # plt.colorbar()
     # plt.grid(False)
     # plt.show()
+
+    # KNN_BaselineModel(x_train, y_train, x_test, y_test)
+    KNN_Model = restore_models("KNN_BaselineModel.pkl")
+    y_pred = KNN_Model.predict(x_test)
+    indices = (y_pred != y_test)
+    misclassified_samples = x_test[indices]
+    actual_label = y_test[indices]
+    pred_label = y_pred[indices]
+    plot_misclassified(pred_label, misclassified_samples, actual_label, class_names)
+
+
+def plot_misclassified(pred_label, misclassified_samples, actual_label, class_names):
+    class_indices = []
+    for i in range(10):
+        class_indices.append(np.where(actual_label == i))
+
+    k = 0
+    for class_index in class_indices:
+        # print(type(class_index))
+        images = misclassified_samples[class_index]
+        false_label = pred_label[class_index]
+        plt.figure(figsize=(15, 12))
+        plt.suptitle(class_names[k])
+        for i in range(20):
+            plt.subplot(4, 5, i + 1)
+            plt.xticks([])
+            plt.yticks([])
+            plt.grid(False)
+            plt.imshow(images[i].reshape(28, 28), cmap=plt.cm.binary)
+            plt.xlabel(class_names[false_label[i]])
+        plt.savefig(class_names[k])
+        k += 1
 
 
 if __name__ == '__main__':
