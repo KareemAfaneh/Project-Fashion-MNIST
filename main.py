@@ -16,7 +16,6 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import f1_score
-import random
 import tensorflow as tf
 from tensorflow.keras import datasets, layers, models
 
@@ -126,60 +125,21 @@ def scatter_plot_of_training_samples(x_train, y_train):
     plt.show()
 
 
-def KNNOneManhattan(x_train, y_train, x_val, y_val):
+def KNN(k, metric, x_train, y_train, x_val, y_val, x_test, y_test, baseline):
     # Create KNN Classifier
-    knn = KNeighborsClassifier(n_neighbors=1, metric='manhattan')
+    knn = KNeighborsClassifier(n_neighbors=k, metric=metric)
     # Train the model using the training sets
     knn.fit(x_train, y_train)
-    pred = knn.score(x_val, y_val)
-    print("KNN with k = 1 using Manhattan Distance: " + str(pred))
-    write_On_file("KNN", "KNN with k = 1 using Manhattan Distance: " + str(pred) + "\n")
-    store_models("KNNOneManhattan.pkl", knn)
-
-
-def KNNThreeManhattan(x_train, y_train, x_val, y_val):
-    # Create KNN Classifier
-    knn = KNeighborsClassifier(n_neighbors=3, metric='manhattan')
-    # Train the model using the training sets
-    knn.fit(x_train, y_train)
-    pred = knn.score(x_val, y_val)
-    print("KNN with k = 3 using Manhattan Distance: " + str(pred))
-    write_On_file("KNN", "KNN with k = 3 using Manhattan Distance: " + str(pred) + "\n")
-    store_models("KNNThreeManhattan.pkl", knn)
-
-
-def KNNOneEuclidean(x_train, y_train, x_val, y_val):
-    # Create KNN Classifier
-    knn = KNeighborsClassifier(n_neighbors=1, metric='euclidean')
-    # Train the model using the training sets
-    knn.fit(x_train, y_train)
-    pred = knn.score(x_val, y_val)
-    print("KNN with k = 1 using Euclidean Distance: " + str(pred))
-    write_On_file("KNN", "KNN with k = 1 using Euclidean Distance: " + str(pred) + "\n")
-    store_models("KNNOneEuclidean.pkl", knn)
-
-
-def KNNThreeEuclidean(x_train, y_train, x_val, y_val):
-    # Create KNN Classifier
-    knn = KNeighborsClassifier(n_neighbors=3, metric='euclidean')
-    # Train the model using the training sets
-    knn.fit(x_train, y_train)
-    pred = knn.score(x_val, y_val)
-    print("KNN with k = 3 using Euclidean Distance: " + str(pred))
-    write_On_file("KNN", "KNN with k = 3 using Euclidean Distance: " + str(pred) + "\n")
-    store_models("KNNThreeEuclidean.pkl", knn)
-
-
-def KNN_BaselineModel(x_train, y_train, x_test, y_test):
-    # Create KNN Classifier
-    knn = KNeighborsClassifier(n_neighbors=3, metric='manhattan')
-    # Train the model using the training sets
-    knn.fit(x_train, y_train)
-    pred = knn.score(x_test, y_test)
-    print("Accuracy of the Baseline Model (KNN with k = 3 using manhattan Distance): " + str(pred))
-    write_On_file("KNN",
-                  "\n\nAccuracy of the Baseline Model (KNN with k = 3 using manhattan Distance): " + str(pred) + "\n")
-    store_models("KNN_BaselineModel.pkl", knn)
+    pred_val = knn.score(x_val, y_val)
+    write_On_file("KNN", "KNN with k = " + str(k) + " using " + metric + " Distance: " + str(pred_val) + "\n")
+    if (baseline == True):
+        pred_test = knn.score(x_test, y_test)
+        f1 = f1_score(y_test, knn.predict(x_test), average='macro')
+        write_On_file("KNN_BaselineModel","\n\nAccuracy of the Baseline Model "
+                                          "(KNN with k = 3 using manhattan Distance): " + str(pred_test) + "\n")
+        write_On_file("KNN_BaselineModel", "\n\nF1-Score of the Baseline Model "
+                                           "(KNN with k = 3 using manhattan Distance): " + str(f1) + "\n")
+        store_models("KNN_BaselineModel.pkl", knn)
 
 
 def model1_NeuralNetwork(x_train, y_train, x_val, y_val):
@@ -205,31 +165,27 @@ def model1_NeuralNetwork(x_train, y_train, x_val, y_val):
     store_models("NeuralNetwork2.pkl", NeuralNetwork3)
 
 
-def model2_RandomForest(x_train, y_train, x_val, y_val):
-    # training random Forest
-    randomF = RandomForestClassifier(n_estimators=100, random_state=123)
+def model2_RandomForest(x_train, y_train, x_val, y_val, x_test, y_test, max_features, bestModel):
+    randomF = RandomForestClassifier(n_estimators=100, random_state=123, max_features=max_features)
     randomF.fit(x_train, y_train)
-    pred = randomF.score(x_val, y_val)
-    print("Random Forest Classifier  (max_features=sqrt): " + str(pred))
-    write_On_file("Random_Forest", "Random Forest Classifier (max_features=sqrt): " + str(pred))
-    store_models("randomForest.pkl", randomF)
-
-    randomF = RandomForestClassifier(n_estimators=100, random_state=123, max_features='log2')
-    randomF.fit(x_train, y_train)
-    pred = randomF.score(x_val, y_val)
-    print("Random Forest Classifier (max_features=log2): " + str(pred))
-    write_On_file("Random_Forest", "Random Forest Classifier (max_features=log2): " + str(pred) + "\n")
-    store_models("randomForest.pkl", randomF)
-
-    randomF = RandomForestClassifier(n_estimators=100, random_state=123, max_features=0.6)
-    randomF.fit(x_train, y_train)
-    pred = randomF.score(x_val, y_val)
-    print("Random Forest Classifier (max_features=0.6): " + str(pred))
-    write_On_file("Random_Forest", "Random Forest Classifier (max_features=0.6): " + str(pred) + "\n")
-    store_models("randomForest.pkl", randomF)
+    pred_val = randomF.score(x_val, y_val)
+    write_On_file("Random_Forest",
+                  "Accuracy of Random Forest Classifier (max_features=" + str(max_features) + "): " + str(pred_val) + "\n")
+    if (bestModel == True):
+        f1 = f1_score(y_test, randomF.predict(x_test), average='macro')
+        pred_training = randomF.score(x_train, y_train)
+        pred_test = randomF.score(x_test, y_test)
+        write_On_file("Random_Forest",
+                      "Accuracy of Random Forest Classifier (max_features=" + str(max_features) + "): "
+                        "\nFor Testing set of data: " + str(pred_test) + "\n"+
+                        "For Training set of data: " + str(pred_training) + "\n"
+                        "For Validation set of data: " + str(pred_val) + "\n")
+        write_On_file("Random_Forest",
+                      "\nF1-Score of Random Forest Classifier (max_features=" + str(max_features) + "): " + str(f1) + "\n")
+        store_models("randomForest.pkl", randomF)
 
 
-def model3_CNN(id, x_train, y_train, x_val, y_val, batch_size, epochs=20, num_classes=10):
+def model3_CNN(x_train, y_train, x_val, y_val, x_test, y_test, batch_size, bestModel, epochs=20, num_classes=10):
     CNN = models.Sequential()
     CNN.add(layers.Conv2D(batch_size / 4, (3, 3), activation='relu', input_shape=(28, 28, 1)))
     CNN.add(layers.MaxPooling2D((2, 2)))
@@ -244,75 +200,22 @@ def model3_CNN(id, x_train, y_train, x_val, y_val, batch_size, epochs=20, num_cl
                 metrics=['accuracy'])
 
     history = CNN.fit(x_train, y_train, batch_size=batch_size, epochs=epochs, verbose=1, validation_data=(x_val, y_val))
-    test_loss, test_acc = CNN.evaluate(x_val, y_val)
-    print(
-        "Accuracy of the Convolutional Neural Network (CNN) with batchSize " + str(batch_size) + " : " + str(test_acc))
-    write_On_file("CNN",
-                  "Accuracy of the Convolutional Neural Network (CNN) with batchSize " + str(batch_size) + " : " + str(
-                      test_acc) + "\n")
-    store_models("CNN" + id + ".pkl", CNN)
-
-
-def start():
-    x_train, y_train, x_test, y_test, class_names = read_data()
-    # x_train, y_train = shuffle(x_train, y_train, random_state=0)
-    x_train = x_train / 255
-    x_test = x_test / 255
-
-    x_train_splitted, x_validation, y_train_splitted, y_validation = train_test_split(x_train, y_train,
-                                                                                      random_state=104,
-                                                                                      test_size=1 / 3, shuffle=True)
-
-    # This part for finding the best baseline model between knn = 1 and 3, and with two different distances
-    # st = time.time()
-    # KNNOneManhattan(x_train_splitted, y_train, x_validation, y_validation)
-    # KNNThreeManhattan(x_train_splitted, y_train, x_validation, y_validation)
-    # KNNOneEuclidean(x_train_splitted, y_train, x_validation, y_validation)
-    # KNNThreeEuclidean(x_train_splitted, y_train, x_validation, y_validation)
-    # print('Execution time:', time.time() - st, 'seconds')
-
-    # this part is to train the best baseline model chosen from the previous part which is knn with k=3
-    # and using Manhattan distance
-    # st = time.time()
-    # KNN_BaselineModel(x_train, y_train, x_test, y_test)
-    # print('Execution time:', time.time() - st, 'seconds')
-    # KNN_BaselineModel = restore_models("KNN_BaselineModel.pkl")
-    # f1 = f1_score(y_test, KNN_BaselineModel.predict(x_test), average=None)
-    # print(f1)
-
-    # This part discuss the Neural Network
-    # st = time.time()
-    # model1_NeuralNetwork(x_train_splitted, y_train, x_validation, y_validation)
-    # print('Execution time:', time.time() - st, 'seconds')
-
-    # st = time.time()
-    # model2_RandomForest(x_train_splitted, y_train, x_validation, y_validation)
-    # print('Execution time:', time.time() - st, 'seconds')
-
-    # x_train_shaped = x_train_splitted.reshape(-1, 28, 28, 1)
-    # x_validation_shaped = x_validation.reshape(-1, 28, 28, 1)
-    # st = time.time()
-    # model3_CNN(1, x_train_shaped, y_train, x_validation_shaped, y_validation, 32, 20, 10)
-    # model3_CNN(2, x_train_shaped, y_train, x_validation_shaped, y_validation, 64, 20, 10)
-    # model3_CNN(3, x_train_shaped, y_train, x_validation_shaped, y_validation, 128, 20, 10)
-    # print('Execution time:', time.time() - st, 'seconds')
-
-    # x_train_splitted = x_train_splitted.reshape(40000, 28, 28)
-    # plt.figure()
-    # plt.imshow(x_train_splitted[6], cmap=plt.cm.binary)
-    # print(class_names[y_train[6]])
-    # plt.colorbar()
-    # plt.grid(False)
-    # plt.show()
-
-    # KNN_BaselineModel(x_train, y_train, x_test, y_test)
-    KNN_Model = restore_models("KNN_BaselineModel.pkl")
-    y_pred = KNN_Model.predict(x_test)
-    indices = (y_pred != y_test)
-    misclassified_samples = x_test[indices]
-    actual_label = y_test[indices]
-    pred_label = y_pred[indices]
-    plot_misclassified(pred_label, misclassified_samples, actual_label, class_names)
+    val_loss, val_acc = CNN.evaluate(x_val, y_val)
+    write_On_file("CNN", "Accuracy of the Convolutional Neural Network (CNN) with batchSize " + str(batch_size) +
+                  " : " + str(val_acc) + "\n")
+    if(bestModel == True):
+        val_loss, val_acc = CNN.evaluate(x_val, y_val)
+        labels = np.argmax(CNN.predict(x_test), axis=-1)
+        f1 = f1_score(y_test, labels, average='macro')
+        training_loss, training_acc = CNN.evaluate(x_train, y_train)
+        test_loss, test_acc = CNN.evaluate(x_test, y_test)
+        write_On_file("CNN", "Accuracy of the Convolutional Neural Network (CNN) with batchSize " + str(batch_size) +
+                        "\nFor Testing set of data: " + str(test_acc) + "\n"+
+                        "For Training set of data: " + str(training_acc) + "\n"+
+                        "For Validation set of data: " + str(val_acc) + "\n")
+        write_On_file("CNN", "F1-Score of the Convolutional Neural Network (CNN) with batchSize " + str(batch_size) +
+                      " : " + str(f1) + "\n")
+        store_models("CNN.pkl", CNN)
 
 
 def plot_misclassified(pred_label, misclassified_samples, actual_label, class_names):
@@ -337,6 +240,57 @@ def plot_misclassified(pred_label, misclassified_samples, actual_label, class_na
         plt.savefig(class_names[k])
         k += 1
 
+
+def start():
+    x_train, y_train, x_test, y_test, class_names = read_data()
+    # x_train, y_train = shuffle(x_train, y_train, random_state=0)
+    x_train = x_train / 255
+    x_test = x_test / 255
+
+    x_train_splitted, x_validation, y_train_splitted, y_validation = train_test_split(x_train, y_train,
+                                                                                      random_state=104,
+                                                                                      test_size=1 / 3, shuffle=True)
+
+    # This part for finding the best baseline model between knn = 1 and 3, and with two different distances
+    st = time.time()
+    KNN(1, "manhattan", x_train_splitted, y_train_splitted, x_validation, y_validation, x_test, y_test, False)
+    KNN(3, "manhattan", x_train_splitted, y_train_splitted, x_validation, y_validation, x_test, y_test, True) # baseline
+    KNN(1, "euclidean", x_train_splitted, y_train_splitted, x_validation, y_validation, x_test, y_test, False)
+    KNN(3, "euclidean", x_train_splitted, y_train_splitted, x_validation, y_validation, x_test, y_test, False)
+
+    # This part discuss the Neural Network
+    # st = time.time()
+    # model1_NeuralNetwork(x_train_splitted, y_train, x_validation, y_validation)
+    # print('Execution time:', time.time() - st, 'seconds')
+
+    model2_RandomForest(x_train_splitted, y_train_splitted, x_validation, y_validation, x_test, y_test, 'sqrt', True) #best Model
+    model2_RandomForest(x_train_splitted, y_train_splitted, x_validation, y_validation, x_test, y_test, 'log2', False)
+    model2_RandomForest(x_train_splitted, y_train_splitted, x_validation, y_validation, x_test, y_test, 0.6, False)
+
+    x_train_shaped = x_train_splitted.reshape(-1, 28, 28, 1)
+    x_validation_shaped = x_validation.reshape(-1, 28, 28, 1)
+    x_test_shaped = x_test.reshape(-1, 28, 28, 1)
+    model3_CNN(x_train_shaped, y_train_splitted, x_validation_shaped, y_validation, x_test_shaped, y_test, 32, False, 20, 10)
+    model3_CNN(x_train_shaped, y_train_splitted, x_validation_shaped, y_validation, x_test_shaped, y_test, 64, False, 20, 10)
+    model3_CNN(x_train_shaped, y_train_splitted, x_validation_shaped, y_validation, x_test_shaped, y_test, 128, True, 20, 10) # best model
+    print('Execution time:', time.time() - st, 'seconds')
+
+    # x_train_splitted = x_train_splitted.reshape(40000, 28, 28)
+    # plt.figure()
+    # plt.imshow(x_train_splitted[6], cmap=plt.cm.binary)
+    # print(class_names[y_train[6]])
+    # plt.colorbar()
+    # plt.grid(False)
+    # plt.show()
+
+    # KNN_BaselineModel(x_train, y_train, x_test, y_test)
+    # KNN_Model = restore_models("KNN_BaselineModel.pkl")
+    # y_pred = KNN_Model.predict(x_test)
+    # indices = (y_pred != y_test)
+    # misclassified_samples = x_test[indices]
+    # actual_label = y_test[indices]
+    # pred_label = y_pred[indices]
+    # plot_misclassified(pred_label, misclassified_samples, actual_label, class_names)
 
 if __name__ == '__main__':
     start()

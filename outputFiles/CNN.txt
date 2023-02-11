@@ -1,3 +1,8 @@
-Accuracy of the Convolutional Neural Network (CNN) with batchSize 32 : 0.8963500261306763
-Accuracy of the Convolutional Neural Network (CNN) with batchSize 64 : 0.8984000086784363
-Accuracy of the Convolutional Neural Network (CNN) with batchSize 128 : 0.9061999917030334
+Accuracy of the Convolutional Neural Network (CNN) with batchSize 32 : 0.8871999979019165
+Accuracy of the Convolutional Neural Network (CNN) with batchSize 64 : 0.9017500281333923
+Accuracy of the Convolutional Neural Network (CNN) with batchSize 128 : 0.9100000262260437
+Accuracy of the Convolutional Neural Network (CNN) with batchSize 128
+For Testing set of data: 0.9106000065803528
+For Training set of data: 0.9819499850273132
+For Validation set of data: 0.9100000262260437
+F1-Score of the Convolutional Neural Network (CNN) with batchSize 128 : 0.9102590231307494

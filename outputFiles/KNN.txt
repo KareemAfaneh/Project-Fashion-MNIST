@@ -1,0 +1,4 @@
+KNN with k = 1 using manhattan Distance: 0.84335
+KNN with k = 3 using manhattan Distance: 0.8513
+KNN with k = 1 using euclidean Distance: 0.84185
+KNN with k = 3 using euclidean Distance: 0.8458
