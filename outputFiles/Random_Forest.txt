@@ -7,3 +7,13 @@ For Validation set of data: 0.87745
 F1-Score of Random Forest Classifier (max_features=sqrt): 0.8718788238793138
 Accuracy of Random Forest Classifier (max_features=log2): 0.8716
 Accuracy of Random Forest Classifier (max_features=0.6): 0.8741
+
+Accuracy of Random Forest Classifier (max_features=sqrt): 0.87745
+Accuracy of Random Forest Classifier (max_features=log2): 0.8716
+Accuracy of Random Forest Classifier (max_features=0.6): 0.8741
+Accuracy of Random Forest Classifier (max_features=sqrt): 0.8777
+Accuracy of Random Forest Classifier (max_features=sqrt): 
+For Testing set of data: 0.8777
+For Training set of data: 0.9999666666666667
+
+F1-Score of Random Forest Classifier (max_features=sqrt): 0.8763230759758045

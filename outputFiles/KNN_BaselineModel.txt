@@ -1,6 +1,7 @@
+Training Accuracy of the Baseline Model (KNN with k = 3 using manhattan Distance): 0.92265
 
 
-Accuracy of the Baseline Model (KNN with k = 3 using manhattan Distance): 0.8529
+Testing Accuracy of the Baseline Model (KNN with k = 3 using manhattan Distance): 0.8575
 
 
-F1-Score of the Baseline Model (KNN with k = 3 using manhattan Distance): 0.8525826721353147
+F1-Score of the Baseline Model (KNN with k = 3 using manhattan Distance): 0.8568576531942202
