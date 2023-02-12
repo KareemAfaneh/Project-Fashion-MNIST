@@ -1,3 +1,5 @@
+import random
+
 import mnist_reader
 import numpy as np
 import matplotlib.pyplot as plt
@@ -24,7 +26,7 @@ from skimage.feature import hog
 def read_data():
     x_train, y_train = mnist_reader.load_mnist('', kind='train')
     x_test, y_test = mnist_reader.load_mnist('', kind='t10k')
-    class_names = ['T-shirt_top', 'Trouser', 'Pullover', 'Dress', 'Coat',
+    class_names = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat',
                    'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle boot']
     return x_train, y_train, x_test, y_test, class_names
 
@@ -137,12 +139,12 @@ def KNN(k, metric, x_train, y_train, x_test, y_test, baseline=False):
         f1 = f1_score(y_test, knn.predict(x_test), average='macro')
         training_accuracy = knn.score(x_train, y_train)
         write_On_file("KNN_BaselineModel2", "\n\nTraining Accuracy of the Baseline Model "
-                                           "(KNN with k = 3 using manhattan Distance): " + str(
+                                            "(KNN with k = 3 using manhattan Distance): " + str(
             training_accuracy) + "\n")
         write_On_file("KNN_BaselineModel2", "\n\nTesting Accuracy of the Baseline Model "
-                                           "(KNN with k = 3 using manhattan Distance): " + str(test_accuracy) + "\n")
+                                            "(KNN with k = 3 using manhattan Distance): " + str(test_accuracy) + "\n")
         write_On_file("KNN_BaselineModel2", "\n\nF1-Score of the Baseline Model "
-                                           "(KNN with k = 3 using manhattan Distance): " + str(f1) + "\n")
+                                            "(KNN with k = 3 using manhattan Distance): " + str(f1) + "\n")
 
         store_models("KNN_BaselineModel2.pkl", knn)
 
@@ -222,29 +224,6 @@ def model3_CNN(x_train, y_train, x_val, y_val, x_test, y_test, batch_size, bestM
         store_models("CNN.pkl", CNN)
 
 
-def plot_misclassified(pred_label, misclassified_samples, actual_label, class_names):
-    class_indices = []
-    for i in range(10):
-        class_indices.append(np.where(actual_label == i))
-
-    k = 0
-    for class_index in class_indices:
-        # print(type(class_index))
-        images = misclassified_samples[class_index]
-        false_label = pred_label[class_index]
-        plt.figure(figsize=(15, 12))
-        plt.suptitle(class_names[k])
-        for i in range(20):
-            plt.subplot(4, 5, i + 1)
-            plt.xticks([])
-            plt.yticks([])
-            plt.grid(False)
-            plt.imshow(images[i].reshape(28, 28), cmap=plt.cm.binary)
-            plt.xlabel(class_names[false_label[i]])
-        plt.savefig(class_names[k])
-        k += 1
-
-
 def start():
     x_train, y_train, x_test, y_test, class_names = read_data()
     # x_train, y_train = shuffle(x_train, y_train, random_state=0)
@@ -306,26 +285,63 @@ def start():
     # pred_label = y_pred[indices]
     # plot_misclassified(pred_label, misclassified_samples, actual_label, class_names)
 
-    t1 = time.time()
-    hog_features = []
-    for image in x_train:
-        fd = hog(image.reshape(28, 28), orientations=8, pixels_per_cell=(4, 4), cells_per_block=(2, 2), block_norm='L2')
-        hog_features.append(fd)
-
-    x_train = np.array(hog_features)
-
-    print(x_train.shape)
-
-    hog_features = []
-    for image in x_test:
-        fd = hog(image.reshape(28, 28), orientations=8, pixels_per_cell=(4, 4), cells_per_block=(2, 2), block_norm='L2')
-        hog_features.append(fd)
-
-    x_test = np.array(hog_features)
-
-    KNN(3, "manhattan", x_train, y_train, x_test, y_test, True)
+    # t1 = time.time()
+    # hog_features = []
+    # for image in x_train:
+    #     fd = hog(image.reshape(28, 28), orientations=8, pixels_per_cell=(4, 4), cells_per_block=(2, 2), block_norm='L2')
+    #     hog_features.append(fd)
+    #
+    # x_train = np.array(hog_features)
+    #
+    # print(x_train.shape)
+    #
+    # hog_features = []
+    # for image in x_test:
+    #     fd = hog(image.reshape(28, 28), orientations=8, pixels_per_cell=(4, 4), cells_per_block=(2, 2), block_norm='L2')
+    #     hog_features.append(fd)
+    #
+    # x_test = np.array(hog_features)
+    #
+    # KNN(3, "manhattan", x_train, y_train, x_test, y_test, True)
 
     # model1_NeuralNetwork(x_train, y_train, x_test, y_test)
+
+    plot_misclassified(x_test, y_test, class_names)
+
+
+def plot_misclassified(x_test, y_test, class_names):
+    NeuralNetwork = restore_models("NeuralNetwork.pkl")
+
+    classes_indices = []
+    accuracies = []
+    for i in range(10):
+        indices = np.where(y_test == i)
+        classes_indices.append(indices)
+        accuracies.append(NeuralNetwork.score(x_test[indices], y_test[indices]))
+    min_acc = min(accuracies)
+    min_acc_class = accuracies.index(min_acc)
+    print(accuracies)
+    print(min_acc_class)
+
+    y_min_class = y_test[classes_indices[min_acc_class]]
+    x_min_class = x_test[classes_indices[min_acc_class]]
+    y_pred = NeuralNetwork.predict(x_min_class)
+
+    misclassified_indices = (y_pred != y_min_class)
+    misclassified_images = x_min_class[misclassified_indices]
+    misclassified_pred = y_pred[misclassified_indices]
+    samples = random.sample(range(len(misclassified_images)), 20)
+
+    plt.figure(figsize=(15, 12))
+    plt.suptitle(class_names[min_acc_class])
+    for i in range(20):
+        plt.subplot(4, 5, i + 1)
+        plt.xticks([])
+        plt.yticks([])
+        plt.grid(False)
+        plt.imshow(misclassified_images[samples[i]].reshape(28, 28), cmap=plt.cm.binary)
+        plt.xlabel(class_names[misclassified_pred[samples[i]]])
+    plt.show()
 
 
 if __name__ == '__main__':
